@@ -15,25 +15,14 @@ VerifyDocs is a Spring Boot application that enables institutions to issue and v
 3. **institution_profiles** - Stores detailed institution profiles
 4. **users** - Stores user accounts
 5. **documents** - Stores document metadata
-6. **verification_logs** - Stores verification history
 7. **user_document_access** - Join table for Many-to-Many relationship
 
 **Relationships Explained:**
 - Location → Location: Self-referencing (Parent-Child hierarchy using Adjacency List)
 - Location → Institution: One-to-Many (One village has many institutions)
-- Institution → User: One-to-Many (One institution has many users)
-- Institution → Document: One-to-Many (One institution issues many documents)
-- Institution → InstitutionProfile: One-to-One (One institution has one profile)
-- User ↔ Document: Many-to-Many (Users can access multiple documents, documents can be accessed by multiple users)
-
 ---
 
-### 2. Implementation of Saving Location (2 Marks)
-
-**File:** `LocationService.java`
-
 **Explanation:**
-- The `saveLocation()` method stores location data in the database using Adjacency List pattern
 - Before saving, it checks if a location with the same code already exists using `existsByCode()`
 - The Location entity has `code`, `name`, `level`, and `parent_id` fields
 - All location levels (Province, District, Sector, Cell, Village) use the same table
@@ -49,7 +38,6 @@ public Location saveLocation(Location location) {
 }
 ```
 
-**API Endpoint:** `POST /api/locations`
 
 **Adjacency List Benefits:**
 - Single table for all location levels (simpler structure)
