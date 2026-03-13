@@ -3,11 +3,11 @@
 ## Project Overview
 VerifyDocs is a Spring Boot application that enables institutions to issue and verify digital documents securely using cryptographic hashing and unique verification codes.
 
+
 ---
 
-## Rubric Requirements Implementation
 
-### 1. Entity Relationship Diagram (ERD) - 7 Tables (3 Marks)
+### 1. Entity Relationship Diagram (ERD) - 7 Tables 
 
 **Tables Created:**
 1. **locations** - Stores all location data using Adjacency List pattern (Province, District, Sector, Cell, Village)
@@ -47,7 +47,7 @@ public Location saveLocation(Location location) {
 
 ---
 
-### 3. Implementation of Sorting and Pagination (5 Marks)
+### 3. Implementation of Sorting and Pagination 
 **Files:** `UserService.java`, `DocumentService.java`, `UserController.java`, `DocumentController.java`
 
 #### Sorting Implementation:
@@ -102,7 +102,7 @@ public Page<User> getAllUsersPaginatedAndSorted(int page, int size, String sortB
 
 ---
 
-### 4. Implementation of Many-to-Many Relationship (3 Marks)
+### 4. Implementation of Many-to-Many Relationship 
 
 **Files:** `User.java`, `Document.java`
 
@@ -137,7 +137,7 @@ private Set<User> authorizedUsers = new HashSet<>();
 
 ---
 
-### 5. Implementation of One-to-Many Relationship (2 Marks)
+### 5. Implementation of One-to-Many Relationship 
 
 **Files:** `Location.java`, `Institution.java`, `User.java`, `Document.java`, `VerificationLog.java`
 
@@ -196,7 +196,7 @@ private Document document;
 
 ---
 
-### 6. Implementation of One-to-One Relationship (2 Marks)
+### 6. Implementation of One-to-One Relationship
 
 **Files:** `Institution.java`, `InstitutionProfile.java`
 
@@ -226,7 +226,7 @@ private Institution institution;
 
 ---
 
-### 7. Implementation of existBy() Method (2 Marks)
+### 7. Implementation of existBy() Method
 
 **Files:** `LocationRepository.java`, `InstitutionRepository.java`, `UserRepository.java`, `DocumentRepository.java`
 
@@ -271,7 +271,7 @@ public Location saveLocation(Location location) {
 
 ---
 
-### 8. Retrieve All Users from a Given Province (4 Marks)
+### 8. Retrieve All Users from a Given Province 
 
 **Files:** `UserRepository.java`, `UserService.java`, `UserController.java`
 
@@ -572,22 +572,7 @@ src/main/java/com/verifydocs/
 
 ---
 
-## Viva-Voce Preparation Topics
 
-1. **ERD Explanation**: Describe all 7 tables and their relationships
-2. **Adjacency List Pattern**: Explain how single table stores all location levels
-3. **Location Saving**: Explain how Location data is stored and validated
-4. **Pagination**: Explain Pageable interface and Page object
-5. **Sorting**: Explain Sort class and how it works with repositories
-6. **Many-to-Many**: Explain join table creation and mapping
-7. **One-to-Many**: Explain foreign key usage, cascade operations, and self-referencing
-8. **One-to-One**: Explain unique constraint and bidirectional mapping
-9. **existBy()**: Explain Spring Data JPA query derivation
-10. **Province Query**: Explain JPQL with explicit JOINs and hierarchy navigation
-11. **Spring Boot Architecture**: Explain Controller → Service → Repository pattern
-12. **Document Verification**: Explain SHA-256 hashing and verification process
-
----
 
 ## Author
 Pacifique Harerimana  
