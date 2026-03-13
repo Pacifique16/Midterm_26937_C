@@ -1,5 +1,6 @@
 package com.verifydocs.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -20,17 +21,19 @@ public class Institution {
     @Column(nullable = false)
     private String status;
     
-    // Many-to-One: Many Institutions belong to one Province
+    // Many-to-One: Many Institutions belong to one Location (Village)
     @ManyToOne
-    @JoinColumn(name = "province_id", nullable = false)
-    private Province province;
+    @JoinColumn(name = "location_id", nullable = false)
+    private Location location;
     
     // One-to-Many: One Institution has many Users
-    @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<User> users;
     
     // One-to-Many: One Institution issues many Documents
-    @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Document> documents;
     
     // One-to-One: One Institution has one Profile
@@ -71,12 +74,12 @@ public class Institution {
         this.status = status;
     }
     
-    public Province getProvince() {
-        return province;
+    public Location getLocation() {
+        return location;
     }
     
-    public void setProvince(Province province) {
-        this.province = province;
+    public void setLocation(Location location) {
+        this.location = location;
     }
     
     public List<User> getUsers() {

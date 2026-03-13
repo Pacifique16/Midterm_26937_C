@@ -1,0 +1,655 @@
+{
+	"info": {
+		"name": "VerifyDocs - Complete CRUD",
+		"description": "Complete API collection for VerifyDocs with full CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Locations",
+			"item": [
+				{
+					"name": "Create Location",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"RTSR\",\n    \"name\": \"Rutsiro\",\n    \"level\": \"DISTRICT\",\n    \"parent\": {\"id\": 3}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/locations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "locations"]
+						}
+					}
+				},
+				{
+					"name": "Get All Locations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/locations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "locations"]
+						}
+					}
+				},
+				{
+					"name": "Get Location by Code",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/locations/KGL",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "locations", "KGL"]
+						}
+					}
+				},
+				{
+					"name": "Update Location",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Rutsiro Updated\",\n    \"level\": \"DISTRICT\",\n    \"parent\": {\"id\": 3}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/locations/14",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "locations", "14"]
+						}
+					}
+				},
+				{
+					"name": "Delete Location",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/locations/14",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "locations", "14"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Institutions",
+			"item": [
+				{
+					"name": "Create Institution",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Institute\",\n    \"email\": \"test@institute.ac.rw\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/institutions?villageCode=GKND",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions"],
+							"query": [{"key": "villageCode", "value": "GKND"}]
+						}
+					}
+				},
+				{
+					"name": "Get All Institutions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions"]
+						}
+					}
+				},
+				{
+					"name": "Get Institution by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "1"]
+						}
+					}
+				},
+				{
+					"name": "Update Institution",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"AUCA Updated\",\n    \"email\": \"info@auca.ac.rw\",\n    \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Institution",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "5"]
+						}
+					}
+				},
+				{
+					"name": "Get Institutions by Village",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/location/village/Amahoro",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "location", "village", "Amahoro"]
+						}
+					}
+				},
+				{
+					"name": "Get Institutions by Cell",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/location/cell/Umuganda",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "location", "cell", "Umuganda"]
+						}
+					}
+				},
+				{
+					"name": "Get Institutions by Sector",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/location/sector/Gisenyi",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "location", "sector", "Gisenyi"]
+						}
+					}
+				},
+				{
+					"name": "Get Institutions by District",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/location/district/Rubavu",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "location", "district", "Rubavu"]
+						}
+					}
+				},
+				{
+					"name": "Get Institutions by Province",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/location/province/Western Province",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "location", "province", "Western Province"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Institution Profiles",
+			"item": [
+				{
+					"name": "Create Institution Profile",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"street\": \"KG 544 St\",\n    \"phone\": \"+250788123456\",\n    \"website\": \"www.auca.ac.rw\",\n    \"description\": \"Adventist University of Central Africa\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/1/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "1", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Update Institution Profile",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"street\": \"KG 544 St Updated\",\n    \"phone\": \"+250788999999\",\n    \"website\": \"www.auca.ac.rw\",\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/1/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "1", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Delete Institution Profile",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/institutions/1/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "institutions", "1", "profile"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Users",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"newuser@auca.ac.rw\",\n    \"password\": \"password123\",\n    \"role\": \"ADMIN\",\n    \"fullName\": \"New User\",\n    \"institution\": {\"id\": 1}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"Updated Name\",\n    \"role\": \"STAFF\",\n    \"password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "5"]
+						}
+					}
+				},
+				{
+					"name": "Get Users by Province Code",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/province/code/WST",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "province", "code", "WST"]
+						}
+					}
+				},
+				{
+					"name": "Get Users by Province Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/province/name/Western Province",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "province", "name", "Western Province"]
+						}
+					}
+				},
+				{
+					"name": "Get Users Paginated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/paginated?page=0&size=10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "paginated"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Users Sorted",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/sorted?sortBy=email",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "sorted"],
+							"query": [{"key": "sortBy", "value": "email"}]
+						}
+					}
+				},
+				{
+					"name": "Get Users Paginated and Sorted",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/paginated-sorted?page=0&size=10&sortBy=fullName",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "users", "paginated-sorted"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"},
+								{"key": "sortBy", "value": "fullName"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Documents",
+			"item": [
+				{
+					"name": "Create Document",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"documentType\": \"Degree Certificate\",\n    \"recipientName\": \"John Doe\",\n    \"filePath\": \"/documents/degree_john_doe.pdf\",\n    \"institution\": {\"id\": 1}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/documents",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents"]
+						}
+					}
+				},
+				{
+					"name": "Get All Documents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents"]
+						}
+					}
+				},
+				{
+					"name": "Get Document by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "1"]
+						}
+					}
+				},
+				{
+					"name": "Generate QR Code (Simple)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/1/qrcode",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "1", "qrcode"]
+						}
+					}
+				},
+				{
+					"name": "Generate QR Code (Custom Size)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/1/qrcode?width=500&height=500",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "1", "qrcode"],
+							"query": [
+								{"key": "width", "value": "500"},
+								{"key": "height", "value": "500"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Generate QR Code (Detailed)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/1/qrcode-detailed",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "1", "qrcode-detailed"]
+						}
+					}
+				},
+				{
+					"name": "Update Document",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"documentType\": \"Master Degree Certificate\",\n    \"recipientName\": \"John Doe Updated\",\n    \"filePath\": \"/documents/master_john_doe.pdf\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/documents/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Document",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "5"]
+						}
+					}
+				},
+				{
+					"name": "Verify Document (Path Variable)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/verify/3C627BD5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "verify", "3C627BD5"]
+						}
+					}
+				},
+				{
+					"name": "Verify Document (Query Parameter)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/verify?verification_code=3C627BD5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "verify"],
+							"query": [{"key": "verification_code", "value": "3C627BD5"}]
+						}
+					}
+				},
+				{
+					"name": "Get Documents Paginated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/paginated?page=0&size=10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "paginated"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Documents Sorted",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/documents/sorted?sortBy=issueDate",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "documents", "sorted"],
+							"query": [{"key": "sortBy", "value": "issueDate"}]
+						}
+					}
+				}
+			]
+		}
+	]
+}

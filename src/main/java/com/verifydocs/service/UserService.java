@@ -24,6 +24,11 @@ public class UserService {
         return userRepository.save(user);
     }
     
+    // Get all users without pagination
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+    
     // Pagination - retrieves users page by page
     public Page<User> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -59,5 +64,25 @@ public class UserService {
     
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+    
+    public User updateUser(Long id, User updatedUser) {
+        User existing = userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        existing.setFullName(updatedUser.getFullName());
+        existing.setRole(updatedUser.getRole());
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            existing.setPassword(updatedUser.getPassword());
+        }
+        
+        return userRepository.save(existing);
+    }
+    
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found");
+        }
+        userRepository.deleteById(id);
     }
 }

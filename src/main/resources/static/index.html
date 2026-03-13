@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifyDocs - Document Verification</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        #qr-reader {
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .result h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .result-details {
+            line-height: 1.8;
+        }
+        
+        .result-details strong {
+            display: inline-block;
+            width: 150px;
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .camera-controls button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .camera-controls button:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .camera-controls button.active {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 VerifyDocs</h1>
+            <p>Secure Digital Document Verification System</p>
+        </div>
+        
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('scan')">📷 Scan QR Code</button>
+                <button class="tab" onclick="switchTab('manual')">⌨️ Manual Entry</button>
+            </div>
+            
+            <!-- Scan QR Code Tab -->
+            <div id="scan-tab" class="tab-content active">
+                <div class="camera-controls">
+                    <button id="start-scan" class="active" onclick="startScanning()">Start Camera</button>
+                    <button id="stop-scan" onclick="stopScanning()">Stop Camera</button>
+                </div>
+                <div id="qr-reader"></div>
+                <p style="text-align: center; color: #666;">Point your camera at the QR code on the document</p>
+            </div>
+            
+            <!-- Manual Entry Tab -->
+            <div id="manual-tab" class="tab-content">
+                <div class="input-group">
+                    <label for="verification-code">Verification Code</label>
+                    <input type="text" id="verification-code" placeholder="Enter verification code (e.g., A1B2C3D4)" maxlength="8">
+                </div>
+                <button class="btn" onclick="verifyManual()">Verify Document</button>
+            </div>
+            
+            <!-- Result Display -->
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+    
+    <script>
+        let html5QrCode;
+        let isScanning = false;
+        
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            // Stop scanning when switching tabs
+            if (tab === 'manual' && isScanning) {
+                stopScanning();
+            }
+        }
+        
+        function startScanning() {
+            if (isScanning) return;
+            
+            html5QrCode = new Html5Qrcode("qr-reader");
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                onScanSuccess,
+                onScanError
+            ).then(() => {
+                isScanning = true;
+                document.getElementById('start-scan').classList.add('active');
+                document.getElementById('stop-scan').classList.remove('active');
+            }).catch(err => {
+                alert('Error starting camera: ' + err);
+            });
+        }
+        
+        function stopScanning() {
+            if (!isScanning) return;
+            
+            html5QrCode.stop().then(() => {
+                isScanning = false;
+                document.getElementById('start-scan').classList.remove('active');
+                document.getElementById('stop-scan').classList.add('active');
+            }).catch(err => {
+                console.error('Error stopping camera:', err);
+            });
+        }
+        
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Code detected:', decodedText);
+            
+            // Stop scanning
+            stopScanning();
+            
+            // Extract verification code from URL or JSON
+            let verificationCode = extractVerificationCode(decodedText);
+            
+            if (verificationCode) {
+                verifyDocument(verificationCode);
+            } else {
+                showResult('error', 'Invalid QR Code', 'Could not extract verification code from QR code.');
+            }
+        }
+        
+        function onScanError(errorMessage) {
+            // Ignore scan errors (happens continuously while scanning)
+        }
+        
+        function extractVerificationCode(qrData) {
+            // Try to parse as JSON first
+            try {
+                const data = JSON.parse(qrData);
+                if (data.verificationCode) {
+                    return data.verificationCode;
+                }
+            } catch (e) {
+                // Not JSON, try to extract from URL
+            }
+            
+            // Try to extract from URL
+            const urlMatch = qrData.match(/verify\/([A-Z0-9]{8})/);
+            if (urlMatch) {
+                return urlMatch[1];
+            }
+            
+            // If it's just the code itself
+            if (/^[A-Z0-9]{8}$/.test(qrData)) {
+                return qrData;
+            }
+            
+            return null;
+        }
+        
+        function verifyManual() {
+            const code = document.getElementById('verification-code').value.trim().toUpperCase();
+            
+            if (!code) {
+                alert('Please enter a verification code');
+                return;
+            }
+            
+            if (!/^[A-Z0-9]{8}$/.test(code)) {
+                alert('Invalid verification code format. Must be 8 characters.');
+                return;
+            }
+            
+            verifyDocument(code);
+        }
+        
+        function verifyDocument(verificationCode) {
+            // Show loading
+            showResult('success', 'Verifying...', 'Please wait while we verify the document.');
+            
+            // Call API
+            fetch(`http://localhost:8080/api/documents/verify/${verificationCode}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    if (data.includes('FRAUD DETECTED')) {
+                        showResult('error', '❌ FRAUD DETECTED!', data);
+                    } else if (data.includes('VERIFIED')) {
+                        showResult('success', '✓ Document Verified', data);
+                    } else {
+                        showResult('error', 'Verification Failed', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error details:', error);
+                    showResult('error', 'Connection Error', 
+                        'Failed to connect to verification server.\n\n' +
+                        'Please check:\n' +
+                        '1. Is the application running? (mvn spring-boot:run)\n' +
+                        '2. Is it running on http://localhost:8080?\n' +
+                        '3. Check browser console for details (F12)\n\n' +
+                        'Error: ' + error.message
+                    );
+                });
+        }
+        
+        function showResult(type, title, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + type;
+            resultDiv.innerHTML = `
+                <h3>${title}</h3>
+                <div class="result-details">
+                    <pre style="white-space: pre-wrap; font-family: inherit;">${message}</pre>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // Scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Auto-start scanning on page load
+        window.addEventListener('load', () => {
+            startScanning();
+        });
+    </script>
+</body>
+</html>

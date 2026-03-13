@@ -16,12 +16,12 @@ public class VerificationLog {
     
     private String ipAddress;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String result;
     
     // Many-to-One: Many VerificationLogs belong to one Document
     @ManyToOne
-    @JoinColumn(name = "document_id", nullable = false)
+    @JoinColumn(name = "document_id", nullable = true)
     private Document document;
     
     public VerificationLog() {}

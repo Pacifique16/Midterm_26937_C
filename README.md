@@ -7,10 +7,10 @@ VerifyDocs is a Spring Boot application that enables institutions to issue and v
 
 ## Rubric Requirements Implementation
 
-### 1. Entity Relationship Diagram (ERD) - 5 Tables (3 Marks)
+### 1. Entity Relationship Diagram (ERD) - 7 Tables (3 Marks)
 
 **Tables Created:**
-1. **provinces** - Stores location data
+1. **locations** - Stores all location data using Adjacency List pattern (Province, District, Sector, Cell, Village)
 2. **institutions** - Stores institution information
 3. **institution_profiles** - Stores detailed institution profiles
 4. **users** - Stores user accounts
@@ -19,42 +19,47 @@ VerifyDocs is a Spring Boot application that enables institutions to issue and v
 7. **user_document_access** - Join table for Many-to-Many relationship
 
 **Relationships Explained:**
-- Province → Institution: One-to-Many (One province has many institutions)
+- Location → Location: Self-referencing (Parent-Child hierarchy using Adjacency List)
+- Location → Institution: One-to-Many (One village has many institutions)
 - Institution → User: One-to-Many (One institution has many users)
 - Institution → Document: One-to-Many (One institution issues many documents)
 - Institution → InstitutionProfile: One-to-One (One institution has one profile)
 - User ↔ Document: Many-to-Many (Users can access multiple documents, documents can be accessed by multiple users)
-- Document → VerificationLog: One-to-Many (One document has many verification logs)
 
 ---
 
 ### 2. Implementation of Saving Location (2 Marks)
 
-**File:** `ProvinceService.java`
+**File:** `LocationService.java`
 
 **Explanation:**
-- The `saveProvince()` method stores location data (Province) in the database
-- Before saving, it checks if a province with the same code already exists using `existsByCode()`
-- The Province entity has a `code` (unique identifier) and `name` field
-- Data is persisted using `provinceRepository.save(province)`
-- The relationship is handled through JPA: When an Institution is saved, it references a Province via the `province_id` foreign key
+- The `saveLocation()` method stores location data in the database using Adjacency List pattern
+- Before saving, it checks if a location with the same code already exists using `existsByCode()`
+- The Location entity has `code`, `name`, `level`, and `parent_id` fields
+- All location levels (Province, District, Sector, Cell, Village) use the same table
+- Data is persisted using `locationRepository.save(location)`
 
 **How it works:**
 ```java
-public Province saveProvince(Province province) {
-    if (provinceRepository.existsByCode(province.getCode())) {
-        throw new RuntimeException("Province already exists");
+public Location saveLocation(Location location) {
+    if (locationRepository.existsByCode(location.getCode())) {
+        throw new RuntimeException("Location already exists");
     }
-    return provinceRepository.save(province);
+    return locationRepository.save(location);
 }
 ```
 
-**API Endpoint:** `POST /api/provinces`
+**API Endpoint:** `POST /api/locations`
+
+**Adjacency List Benefits:**
+- Single table for all location levels (simpler structure)
+- Easy to add new location levels
+- Efficient parent-child navigation
+- Follows lecturer's requirement: Institution links to Village, automatically connected to all parent levels
 
 ---
 
 ### 3. Implementation of Sorting and Pagination (5 Marks)
-
 **Files:** `UserService.java`, `DocumentService.java`, `UserController.java`, `DocumentController.java`
 
 #### Sorting Implementation:
@@ -146,9 +151,25 @@ private Set<User> authorizedUsers = new HashSet<>();
 
 ### 5. Implementation of One-to-Many Relationship (2 Marks)
 
-**Files:** `Institution.java`, `User.java`, `Document.java`, `VerificationLog.java`
+**Files:** `Location.java`, `Institution.java`, `User.java`, `Document.java`, `VerificationLog.java`
 
 **Examples:**
+
+#### Location → Location (Self-Referencing One-to-Many):
+```java
+// In Location.java
+@ManyToOne
+@JoinColumn(name = "parent_id")
+private Location parent;
+
+@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+private List<Location> children;
+```
+
+**Explanation:**
+- One Location (e.g., Province) has many child Locations (e.g., Districts)
+- The `parent_id` foreign key references `locations.id`
+- Enables hierarchical navigation: Village → Cell → Sector → District → Province
 
 #### Institution → User (One-to-Many):
 ```java
@@ -219,7 +240,7 @@ private Institution institution;
 
 ### 7. Implementation of existBy() Method (2 Marks)
 
-**Files:** `ProvinceRepository.java`, `InstitutionRepository.java`, `UserRepository.java`, `DocumentRepository.java`
+**Files:** `LocationRepository.java`, `InstitutionRepository.java`, `UserRepository.java`, `DocumentRepository.java`
 
 **Explanation:**
 - `existBy()` methods are Spring Data JPA query methods
@@ -230,7 +251,7 @@ private Institution institution;
 **Examples:**
 
 ```java
-// In ProvinceRepository.java
+// In LocationRepository.java
 boolean existsByCode(String code);
 boolean existsByName(String name);
 
@@ -239,25 +260,26 @@ boolean existsByEmail(String email);
 
 // In DocumentRepository.java
 boolean existsByVerificationCode(String verificationCode);
+
+// In InstitutionProfileRepository.java
+boolean existsByInstitutionId(Long institutionId);
 ```
 
 **How it works:**
 - Spring Data JPA parses the method name
-- Generates SQL: `SELECT COUNT(*) > 0 FROM provinces WHERE code = ?`
+- Generates SQL: `SELECT COUNT(*) > 0 FROM locations WHERE code = ?`
 - Returns `true` if count > 0, otherwise `false`
 - More efficient than fetching the entire entity
 
 **Usage in Service:**
 ```java
-public Province saveProvince(Province province) {
-    if (provinceRepository.existsByCode(province.getCode())) {
-        throw new RuntimeException("Province already exists");
+public Location saveLocation(Location location) {
+    if (locationRepository.existsByCode(location.getCode())) {
+        throw new RuntimeException("Location already exists");
     }
-    return provinceRepository.save(province);
+    return locationRepository.save(location);
 }
 ```
-
-**API Endpoint:** `GET /api/provinces/exists/{code}`
 
 ---
 
@@ -269,23 +291,35 @@ public Province saveProvince(Province province) {
 
 #### Using Province Code:
 ```java
-@Query("SELECT u FROM User u WHERE u.institution.province.code = :provinceCode")
+@Query("SELECT u FROM User u " +
+       "JOIN u.institution i " +
+       "JOIN i.location v " +
+       "JOIN v.parent c " +
+       "JOIN c.parent s " +
+       "JOIN s.parent d " +
+       "JOIN d.parent p " +
+       "WHERE p.code = :provinceCode AND p.level = 'PROVINCE'")
 List<User> findAllByProvinceCode(@Param("provinceCode") String provinceCode);
 ```
 
 #### Using Province Name:
 ```java
-@Query("SELECT u FROM User u WHERE u.institution.province.name = :provinceName")
+@Query("SELECT u FROM User u " +
+       "JOIN u.institution i " +
+       "JOIN i.location v " +
+       "JOIN v.parent c " +
+       "JOIN c.parent s " +
+       "JOIN s.parent d " +
+       "JOIN d.parent p " +
+       "WHERE p.name = :provinceName AND p.level = 'PROVINCE'")
 List<User> findAllByProvinceName(@Param("provinceName") String provinceName);
 ```
 
 **Query Logic Explanation:**
-- Uses JPQL (Java Persistence Query Language)
-- `u` is an alias for User entity
-- `u.institution.province.code` navigates through relationships:
-  - User → Institution (via `institution` field)
-  - Institution → Province (via `province` field)
-  - Province → code (via `code` field)
+- Uses JPQL (Java Persistence Query Language) with explicit JOINs
+- Navigates through location hierarchy:
+  - User → Institution → Location(Village) → Cell → Sector → District → Province
+- Each JOIN moves up one level in the hierarchy
 - `:provinceCode` is a named parameter bound using `@Param`
 - Spring Data JPA translates this to SQL with proper JOINs
 
@@ -293,8 +327,12 @@ List<User> findAllByProvinceName(@Param("provinceName") String provinceName);
 ```sql
 SELECT u.* FROM users u
 JOIN institutions i ON u.institution_id = i.id
-JOIN provinces p ON i.province_id = p.id
-WHERE p.code = ?
+JOIN locations v ON i.location_id = v.id
+JOIN locations c ON v.parent_id = c.id
+JOIN locations s ON c.parent_id = s.id
+JOIN locations d ON s.parent_id = d.id
+JOIN locations p ON d.parent_id = p.id
+WHERE p.code = ? AND p.level = 'PROVINCE'
 ```
 
 **Service Layer:**
@@ -314,6 +352,38 @@ public List<User> getUsersByProvinceName(String provinceName) {
 
 ---
 
+## Adjacency List Pattern Implementation
+
+### What is Adjacency List?
+A design pattern where hierarchical data is stored in a single table with a self-referencing foreign key (`parent_id`).
+
+### Location Table Structure:
+```
+locations:
+- id (Primary Key)
+- code (Unique)
+- name
+- level (PROVINCE, DISTRICT, SECTOR, CELL, VILLAGE)
+- parent_id (Foreign Key → locations.id)
+```
+
+### Hierarchy Example:
+```
+Kigali (PROVINCE, parent_id=NULL)
+  └─ Gasabo (DISTRICT, parent_id=1)
+      └─ Remera (SECTOR, parent_id=6)
+          └─ Kisimenti (CELL, parent_id=14)
+              └─ Gikondo (VILLAGE, parent_id=21)
+```
+
+### Benefits:
+- ✅ Single table instead of 5 separate tables
+- ✅ Easier to add new location levels
+- ✅ Cleaner code with single Location entity
+- ✅ Follows lecturer's requirement perfectly
+
+---
+
 ## Setup Instructions
 
 ### Prerequisites
@@ -330,8 +400,23 @@ CREATE DATABASE verifydocs_db;
 
 2. Update `application.properties` with your database credentials:
 ```properties
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+spring.datasource.username=postgres
+spring.datasource.password=password
+```
+
+3. Run migration script:
+```bash
+psql -U postgres -d verifydocs_db -f migration_to_adjacency_list.sql
+```
+
+4. Load Rwanda location data:
+```bash
+psql -U postgres -d verifydocs_db -f rwanda_locations_adjacency.sql
+```
+
+5. Load sample institutions:
+```bash
+psql -U postgres -d verifydocs_db -f sample_institutions.sql
 ```
 
 ### Running the Application
@@ -340,32 +425,29 @@ spring.datasource.password=your_password
 3. Run: `mvn spring-boot:run`
 4. Application starts on: `http://localhost:8080`
 
-### API Documentation
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- API Docs: `http://localhost:8080/api-docs`
-
 ---
 
 ## Testing with Postman
 
-### 1. Create Province (Location)
+### 1. Create Location
 ```
-POST http://localhost:8080/api/provinces
+POST http://localhost:8080/api/locations
 Body (JSON):
 {
-    "code": "KGL",
-    "name": "Kigali"
+    "code": "RTSR",
+    "name": "Rutsiro",
+    "level": "DISTRICT",
+    "parent": {"id": 3}
 }
 ```
 
-### 2. Create Institution
+### 2. Create Institution (requires villageCode)
 ```
-POST http://localhost:8080/api/institutions?provinceCode=KGL
+POST http://localhost:8080/api/institutions?villageCode=GKND
 Body (JSON):
 {
     "name": "AUCA",
-    "email": "info@auca.ac.rw",
-    "status": "ACTIVE"
+    "email": "info@auca.ac.rw"
 }
 ```
 
@@ -374,14 +456,26 @@ Body (JSON):
 POST http://localhost:8080/api/institutions/1/profile
 Body (JSON):
 {
-    "address": "KG 544 St",
+    "street": "KG 544 St",
     "phone": "+250788123456",
     "website": "www.auca.ac.rw",
     "description": "Adventist University of Central Africa"
 }
 ```
 
-### 4. Create User
+### 4. Update Institution Profile
+```
+PUT http://localhost:8080/api/institutions/1/profile
+Body (JSON):
+{
+    "street": "KG 544 St Updated",
+    "phone": "+250788999999",
+    "website": "www.auca.ac.rw",
+    "description": "Updated description"
+}
+```
+
+### 5. Create User
 ```
 POST http://localhost:8080/api/users
 Body (JSON):
@@ -394,24 +488,46 @@ Body (JSON):
 }
 ```
 
-### 5. Get Users by Province Code
+### 6. Create Document
 ```
-GET http://localhost:8080/api/users/province/code/KGL
+POST http://localhost:8080/api/documents
+Body (JSON):
+{
+    "documentType": "Bachelor Degree Certificate",
+    "recipientName": "John Doe",
+    "filePath": "/documents/john_degree.pdf",
+    "institution": {"id": 1}
+}
 ```
 
-### 6. Get Users with Pagination
+### 7. Verify Document (Path Variable)
+```
+GET http://localhost:8080/api/documents/verify/3C627BD5
+```
+
+### 8. Verify Document (Query Parameter)
+```
+GET http://localhost:8080/api/documents/verify?verification_code=3C627BD5
+```
+
+### 9. Get Users by Province Code
+```
+GET http://localhost:8080/api/users/province/code/WST
+```
+
+### 10. Get Institutions by District
+```
+GET http://localhost:8080/api/institutions/location/district/Rubavu
+```
+
+### 11. Get Users with Pagination
 ```
 GET http://localhost:8080/api/users/paginated?page=0&size=10
 ```
 
-### 7. Get Users with Sorting
+### 12. Get Users with Sorting
 ```
 GET http://localhost:8080/api/users/sorted?sortBy=email
-```
-
-### 8. Check if Province Exists
-```
-GET http://localhost:8080/api/provinces/exists/KGL
 ```
 
 ---
@@ -419,29 +535,32 @@ GET http://localhost:8080/api/provinces/exists/KGL
 ## Project Structure
 ```
 src/main/java/com/verifydocs/
-├── entity/              # JPA Entities (5 tables)
-│   ├── Province.java
+├── entity/              # JPA Entities
+│   ├── Location.java (Adjacency List)
 │   ├── Institution.java
 │   ├── InstitutionProfile.java
 │   ├── User.java
 │   ├── Document.java
 │   └── VerificationLog.java
 ├── repository/          # Spring Data JPA Repositories
-│   ├── ProvinceRepository.java
+│   ├── LocationRepository.java
 │   ├── InstitutionRepository.java
+│   ├── InstitutionProfileRepository.java
 │   ├── UserRepository.java
 │   ├── DocumentRepository.java
 │   └── VerificationLogRepository.java
 ├── service/            # Business Logic
-│   ├── ProvinceService.java
+│   ├── LocationService.java
 │   ├── InstitutionService.java
 │   ├── UserService.java
 │   └── DocumentService.java
 ├── controller/         # REST API Controllers
-│   ├── ProvinceController.java
+│   ├── LocationController.java
 │   ├── InstitutionController.java
 │   ├── UserController.java
 │   └── DocumentController.java
+├── exception/          # Exception Handling
+│   └── GlobalExceptionHandler.java
 └── VerifyDocsApplication.java  # Main Application
 ```
 
@@ -449,33 +568,41 @@ src/main/java/com/verifydocs/
 
 ## Key Features Implemented
 
-✅ 5+ Entity tables with proper relationships  
-✅ Location (Province) saving functionality  
+✅ 7 Entity tables with proper relationships  
+✅ Adjacency List pattern for location hierarchy  
+✅ Location saving functionality with validation  
 ✅ Pagination using Pageable  
 ✅ Sorting using Sort  
 ✅ Many-to-Many relationship (User ↔ Document)  
-✅ One-to-Many relationships (Institution → User, Document → VerificationLog)  
+✅ One-to-Many relationships (Location → Location, Institution → User, Document → VerificationLog)  
 ✅ One-to-One relationship (Institution ↔ InstitutionProfile)  
 ✅ existBy() methods for existence checking  
-✅ Retrieve users by province code/name with JPQL queries  
+✅ Retrieve users/institutions by any location level with JPQL queries  
+✅ Document verification with SHA-256 hashing  
+✅ Global exception handling with custom error messages  
+✅ Profile create and update endpoints  
 
 ---
 
 ## Viva-Voce Preparation Topics
 
-1. **ERD Explanation**: Describe all 5 tables and their relationships
-2. **Location Saving**: Explain how Province data is stored and validated
-3. **Pagination**: Explain Pageable interface and Page object
-4. **Sorting**: Explain Sort class and how it works with repositories
-5. **Many-to-Many**: Explain join table creation and mapping
-6. **One-to-Many**: Explain foreign key usage and cascade operations
-7. **One-to-One**: Explain unique constraint and bidirectional mapping
-8. **existBy()**: Explain Spring Data JPA query derivation
-9. **Province Query**: Explain JPQL and relationship navigation
-10. **Spring Boot Architecture**: Explain Controller → Service → Repository pattern
+1. **ERD Explanation**: Describe all 7 tables and their relationships
+2. **Adjacency List Pattern**: Explain how single table stores all location levels
+3. **Location Saving**: Explain how Location data is stored and validated
+4. **Pagination**: Explain Pageable interface and Page object
+5. **Sorting**: Explain Sort class and how it works with repositories
+6. **Many-to-Many**: Explain join table creation and mapping
+7. **One-to-Many**: Explain foreign key usage, cascade operations, and self-referencing
+8. **One-to-One**: Explain unique constraint and bidirectional mapping
+9. **existBy()**: Explain Spring Data JPA query derivation
+10. **Province Query**: Explain JPQL with explicit JOINs and hierarchy navigation
+11. **Spring Boot Architecture**: Explain Controller → Service → Repository pattern
+12. **Document Verification**: Explain SHA-256 hashing and verification process
 
 ---
 
 ## Author
 Pacifique Harerimana  
-AUCA - Web Technology and Internet Course
+Student ID: 26937  
+AUCA - Web Technology and Internet Course  
+Midterm Project

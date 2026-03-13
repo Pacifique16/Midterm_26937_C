@@ -1,5 +1,6 @@
 package com.verifydocs.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -15,7 +16,10 @@ public class Document {
     private Long id;
     
     @Column(nullable = false)
-    private String title;
+    private String documentType;
+    
+    @Column(nullable = false)
+    private String recipientName;
     
     @Column(nullable = false)
     private String filePath;
@@ -35,11 +39,13 @@ public class Document {
     private Institution institution;
     
     // Many-to-Many: Documents can be accessed by multiple Users
-    @ManyToMany(mappedBy = "accessibleDocuments")
+    @ManyToMany(mappedBy = "accessibleDocuments", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<User> authorizedUsers = new HashSet<>();
     
     // One-to-Many: One Document has many VerificationLogs
-    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<VerificationLog> verificationLogs;
     
     public Document() {}
@@ -52,12 +58,20 @@ public class Document {
         this.id = id;
     }
     
-    public String getTitle() {
-        return title;
+    public String getDocumentType() {
+        return documentType;
     }
     
-    public void setTitle(String title) {
-        this.title = title;
+    public void setDocumentType(String documentType) {
+        this.documentType = documentType;
+    }
+    
+    public String getRecipientName() {
+        return recipientName;
+    }
+    
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
     }
     
     public String getFilePath() {

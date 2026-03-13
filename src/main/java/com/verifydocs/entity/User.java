@@ -1,5 +1,6 @@
 package com.verifydocs.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,12 +30,13 @@ public class User {
     private Institution institution;
     
     // Many-to-Many: Users can access multiple Documents
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_document_access",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "document_id")
     )
+    @JsonIgnore
     private Set<Document> accessibleDocuments = new HashSet<>();
     
     public User() {}

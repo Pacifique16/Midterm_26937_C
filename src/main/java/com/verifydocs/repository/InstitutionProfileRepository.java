@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface InstitutionProfileRepository extends JpaRepository<InstitutionProfile, Long> {
     
     InstitutionProfile findByInstitutionId(Long institutionId);
+    
+    boolean existsByInstitutionId(Long institutionId);
 }

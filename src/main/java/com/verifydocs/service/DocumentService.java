@@ -1,6 +1,7 @@
 package com.verifydocs.service;
 
 import com.verifydocs.entity.Document;
+import com.verifydocs.entity.InstitutionProfile;
 import com.verifydocs.entity.VerificationLog;
 import com.verifydocs.repository.DocumentRepository;
 import com.verifydocs.repository.VerificationLogRepository;
@@ -49,9 +50,19 @@ public class DocumentService {
     }
     
     public Document saveDocument(Document document) {
+        // Generate hash from document content
+        String content = document.getDocumentType() + document.getRecipientName() + 
+                        document.getFilePath() + LocalDateTime.now().toString();
+        document.setHashValue(generateHash(content));
+        
         document.setIssueDate(LocalDateTime.now());
         document.setVerificationCode(generateVerificationCode());
         return documentRepository.save(document);
+    }
+    
+    // Get all documents without pagination
+    public List<Document> getAllDocuments() {
+        return documentRepository.findAll();
     }
     
     // Pagination - retrieves documents page by page
@@ -77,18 +88,97 @@ public class DocumentService {
         return documentRepository.findByInstitutionId(institutionId, pageable);
     }
     
-    // Verify document by comparing hashes
+    // Verify document authenticity
     public String verifyDocument(String verificationCode, String ipAddress) {
         Document document = documentRepository.findByVerificationCode(verificationCode);
         
         if (document == null) {
-            logVerification(null, "FAILED - Document not found", ipAddress);
-            return "FAILED - Document not found";
+            logVerification(null, "FAILED - Document not found. Invalid verification code.", ipAddress);
+            return "FRAUD DETECTED!\n\nThis verification code does not exist in our system.\nThe document is FAKE or the verification code is incorrect.";
         }
+        
+        // Format verification response
+        String response = formatVerificationResponse(document);
         
         // Log verification
         logVerification(document, "SUCCESS - Document is authentic", ipAddress);
-        return "SUCCESS - Document is authentic";
+        return response;
+    }
+    
+    // Advanced verification with hash comparison to detect tampering
+    public String verifyDocumentWithHash(String verificationCode, String documentContent, String ipAddress) {
+        Document document = documentRepository.findByVerificationCode(verificationCode);
+        
+        if (document == null) {
+            logVerification(null, "FAILED - Document not found. Invalid verification code.", ipAddress);
+            return "FRAUD DETECTED!\n\nThis verification code does not exist in our system.\nThe document is FAKE or the verification code is incorrect.";
+        }
+        
+        // Recompute hash from provided document content
+        String computedHash = generateHash(documentContent);
+        
+        // Compare with stored hash
+        if (!computedHash.equals(document.getHashValue())) {
+            logVerification(document, "FAILED - Document has been tampered. Hash mismatch.", ipAddress);
+            return "FRAUD DETECTED!\n\n" +
+                   "This document has been TAMPERED or MODIFIED.\n\n" +
+                   "Original Hash: " + document.getHashValue().substring(0, 16) + "...\n" +
+                   "Current Hash:  " + computedHash.substring(0, 16) + "...\n\n" +
+                   "The document content does not match our records.\n" +
+                   "This document is NOT AUTHENTIC.";
+        }
+        
+        // Document is authentic
+        String response = formatVerificationResponse(document);
+        logVerification(document, "SUCCESS - Document is authentic and untampered", ipAddress);
+        return response;
+    }
+    
+    private String formatVerificationResponse(Document document) {
+        StringBuilder response = new StringBuilder();
+        response.append("✓ VERIFIED - Document is AUTHENTIC\n");
+        response.append("\n");
+        response.append("Document Type: ").append(document.getDocumentType()).append("\n");
+        response.append("Recipient Name: ").append(document.getRecipientName()).append("\n");
+        response.append("Issue Date: ").append(document.getIssueDate().toLocalDate()).append("\n");
+        response.append("\n");
+        response.append("Issued By:\n");
+        response.append("Institution: ").append(document.getInstitution().getName()).append("\n");
+        response.append("Email: ").append(document.getInstitution().getEmail()).append("\n");
+        
+        // Build address from location hierarchy and profile
+        response.append("Address: ");
+        
+        // Get street from profile if available
+        if (document.getInstitution().getProfile() != null && 
+            document.getInstitution().getProfile().getStreet() != null) {
+            response.append(document.getInstitution().getProfile().getStreet()).append(", ");
+        }
+        
+        // Get district and province from location hierarchy
+        if (document.getInstitution().getLocation() != null) {
+            // Navigate: Village -> Cell -> Sector -> District -> Province
+            var village = document.getInstitution().getLocation();
+            if (village.getParent() != null) {
+                var cell = village.getParent();
+                if (cell.getParent() != null) {
+                    var sector = cell.getParent();
+                    if (sector.getParent() != null) {
+                        var district = sector.getParent();
+                        response.append(district.getName()).append(", ");
+                        if (district.getParent() != null) {
+                            var province = district.getParent();
+                            response.append(province.getName());
+                        }
+                    }
+                }
+            }
+        }
+        response.append("\n");
+        response.append("\n");
+        response.append("This document has been verified against our secure database.\n");
+        
+        return response.toString();
     }
     
     private void logVerification(Document document, String result, String ipAddress) {
@@ -103,5 +193,23 @@ public class DocumentService {
     public Document getDocumentById(Long id) {
         return documentRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Document not found"));
+    }
+    
+    public Document updateDocument(Long id, Document updatedDocument) {
+        Document existing = documentRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Document not found"));
+        
+        existing.setDocumentType(updatedDocument.getDocumentType());
+        existing.setRecipientName(updatedDocument.getRecipientName());
+        existing.setFilePath(updatedDocument.getFilePath());
+        
+        return documentRepository.save(existing);
+    }
+    
+    public void deleteDocument(Long id) {
+        if (!documentRepository.existsById(id)) {
+            throw new RuntimeException("Document not found");
+        }
+        documentRepository.deleteById(id);
     }
 }
