@@ -1,13 +1,15 @@
 # VerifyDocs - Secure Digital Document Verification System
 
 ## Project Overview
-VerifyDocs is a Spring Boot application that enables institutions to issue and verify digital documents securely using cryptographic hashing and unique verification codes.
+VerifyDocs is a Spring Boot application that enables institutions to issue and verify digital documents securely using cryptographic hashing and unique verification codes. The system supports hierarchical location management using the Adjacency List pattern and provides comprehensive CRUD operations with advanced querying capabilities.
 
+![ERD Diagram](images/ERD%20Diagram.png)
 
 ---
 
+## Rubric Requirements Implementation
 
-### 1. Entity Relationship Diagram (ERD) - 7 Tables 
+### 1. Entity Relationship Diagram (ERD) - 7 Tables (3 Marks)
 
 **Tables Created:**
 1. **locations** - Stores all location data using Adjacency List pattern (Province, District, Sector, Cell, Village)
@@ -15,14 +17,28 @@ VerifyDocs is a Spring Boot application that enables institutions to issue and v
 3. **institution_profiles** - Stores detailed institution profiles
 4. **users** - Stores user accounts
 5. **documents** - Stores document metadata
+6. **verification_logs** - Stores document verification history
 7. **user_document_access** - Join table for Many-to-Many relationship
 
 **Relationships Explained:**
 - Location → Location: Self-referencing (Parent-Child hierarchy using Adjacency List)
 - Location → Institution: One-to-Many (One village has many institutions)
+- Institution → User: One-to-Many (One institution has many users)
+- Institution → Document: One-to-Many (One institution issues many documents)
+- Institution → InstitutionProfile: One-to-One (One institution has one profile)
+- Document → VerificationLog: One-to-Many (One document has many verification logs)
+- User ↔ Document: Many-to-Many (Users can access multiple documents)
+
+![Database Tables](images/database%20tables.png)
+
 ---
 
+### 2. Implementation of Saving Location (2 Marks)
+
+**File:** `LocationService.java`
+
 **Explanation:**
+- The `saveLocation()` method stores location data in the database using Adjacency List pattern
 - Before saving, it checks if a location with the same code already exists using `existsByCode()`
 - The Location entity has `code`, `name`, `level`, and `parent_id` fields
 - All location levels (Province, District, Sector, Cell, Village) use the same table
@@ -38,6 +54,9 @@ public Location saveLocation(Location location) {
 }
 ```
 
+**API Endpoint:** `POST /api/locations`
+
+![Creating Location](images/creating%20location.png)
 
 **Adjacency List Benefits:**
 - Single table for all location levels (simpler structure)
@@ -47,7 +66,7 @@ public Location saveLocation(Location location) {
 
 ---
 
-### 3. Implementation of Sorting and Pagination 
+### 3. Implementation of Sorting and Pagination (5 Marks)
 **Files:** `UserService.java`, `DocumentService.java`, `UserController.java`, `DocumentController.java`
 
 #### Sorting Implementation:
@@ -100,9 +119,20 @@ public Page<User> getAllUsersPaginatedAndSorted(int page, int size, String sortB
 - `GET /api/users/sorted?sortBy=email`
 - `GET /api/users/paginated-sorted?page=0&size=10&sortBy=fullName`
 
+**Screenshots:**
+
+![Get Users Paginated](images/get%20users%20paginated.png)
+*Pagination Example: Retrieving users page by page*
+
+![Get Users Sorted](images/get%20users%20sorted.png)
+*Sorting Example: Users sorted by field*
+
+![Get Users Paginated and Sorted](images/get%20users%20paginated%20and%20sorted.png)
+*Combined: Pagination with sorting*
+
 ---
 
-### 4. Implementation of Many-to-Many Relationship 
+### 4. Implementation of Many-to-Many Relationship (3 Marks)
 
 **Files:** `User.java`, `Document.java`
 
@@ -137,7 +167,7 @@ private Set<User> authorizedUsers = new HashSet<>();
 
 ---
 
-### 5. Implementation of One-to-Many Relationship 
+### 5. Implementation of One-to-Many Relationship (2 Marks)
 
 **Files:** `Location.java`, `Institution.java`, `User.java`, `Document.java`, `VerificationLog.java`
 
@@ -196,7 +226,7 @@ private Document document;
 
 ---
 
-### 6. Implementation of One-to-One Relationship
+### 6. Implementation of One-to-One Relationship (2 Marks)
 
 **Files:** `Institution.java`, `InstitutionProfile.java`
 
@@ -226,7 +256,7 @@ private Institution institution;
 
 ---
 
-### 7. Implementation of existBy() Method
+### 7. Implementation of existBy() Method (2 Marks)
 
 **Files:** `LocationRepository.java`, `InstitutionRepository.java`, `UserRepository.java`, `DocumentRepository.java`
 
@@ -271,7 +301,7 @@ public Location saveLocation(Location location) {
 
 ---
 
-### 8. Retrieve All Users from a Given Province 
+### 8. Retrieve All Users from a Given Province (3 Marks)
 
 **Files:** `UserRepository.java`, `UserService.java`, `UserController.java`
 
@@ -337,6 +367,14 @@ public List<User> getUsersByProvinceName(String provinceName) {
 **API Endpoints:**
 - `GET /api/users/province/code/{provinceCode}`
 - `GET /api/users/province/name/{provinceName}`
+
+**Screenshots:**
+
+![Get Users by Province Code](images/get%20users%20by%20province%20code.png)
+*Retrieving all users from a specific province using province code*
+
+![Get Users by Province Name](images/get%20users%20by%20province%20name.png)
+*Retrieving all users from a specific province using province name*
 
 ---
 
@@ -415,9 +453,13 @@ psql -U postgres -d verifydocs_db -f sample_institutions.sql
 
 ---
 
-## Testing with Postman
+## API Documentation & Testing
 
-### 1. Create Location
+### CRUD Operations
+
+#### Location Operations
+
+**1. Create Location**
 ```
 POST http://localhost:8080/api/locations
 Body (JSON):
@@ -429,7 +471,35 @@ Body (JSON):
 }
 ```
 
-### 2. Create Institution (requires villageCode)
+**Get All Locations:**
+```
+GET http://localhost:8080/api/locations
+```
+![Get All Locations](images/get%20all%20locations.png)
+
+**Get Location by Code:**
+```
+GET http://localhost:8080/api/locations/code/{code}
+```
+![Get Location by Code](images/get%20location%20by%20code.png)
+
+**Update Location:**
+```
+PUT http://localhost:8080/api/locations/{id}
+```
+![Update Location](images/update%20location.png)
+
+**Delete Location:**
+```
+DELETE http://localhost:8080/api/locations/{id}
+```
+![Delete Location](images/delete%20location.png)
+
+---
+
+#### Institution Operations
+
+**2. Create Institution (requires villageCode)**
 ```
 POST http://localhost:8080/api/institutions?villageCode=GKND
 Body (JSON):
@@ -438,8 +508,51 @@ Body (JSON):
     "email": "info@auca.ac.rw"
 }
 ```
+![Create Institution](images/create%20institution.png)
 
-### 3. Create Institution Profile (One-to-One)
+**Get All Institutions:**
+```
+GET http://localhost:8080/api/institutions
+```
+![Get All Institutions](images/get%20all%20institutions.png)
+
+**Get Institution by ID:**
+```
+GET http://localhost:8080/api/institutions/{id}
+```
+![Get Institution by ID](images/get%20institution%20by%20id.png)
+
+**Get Institutions by Location Level:**
+```
+GET /api/institutions/location/province/{provinceName}
+GET /api/institutions/location/district/{districtName}
+GET /api/institutions/location/sector/{sectorName}
+GET /api/institutions/location/cell/{cellName}
+GET /api/institutions/location/village/{villageCode}
+```
+![Get Institutions by Province](images/get%20institutions%20by%20province.png)
+![Get Institutions by District](images/get%20institutions%20by%20district.png)
+![Get Institutions by Sector](images/get%20institutions%20by%20sector.png)
+![Get Institutions by Cell](images/get%20institutions%20by%20cell.png)
+![Get Institution by Village](images/get%20institution%20by%20village.png)
+
+**Update Institution:**
+```
+PUT http://localhost:8080/api/institutions/{id}
+```
+![Update Institution](images/update%20institution.png)
+
+**Delete Institution:**
+```
+DELETE http://localhost:8080/api/institutions/{id}
+```
+![Delete Institution](images/delete%20institution.png)
+
+---
+
+#### Institution Profile Operations (One-to-One Relationship)
+
+**3. Create Institution Profile**
 ```
 POST http://localhost:8080/api/institutions/1/profile
 Body (JSON):
@@ -450,8 +563,9 @@ Body (JSON):
     "description": "Adventist University of Central Africa"
 }
 ```
+![Create Institution Profile](images/create%20institution%20profile.png)
 
-### 4. Update Institution Profile
+**4. Update Institution Profile**
 ```
 PUT http://localhost:8080/api/institutions/1/profile
 Body (JSON):
@@ -462,8 +576,19 @@ Body (JSON):
     "description": "Updated description"
 }
 ```
+![Update Institution Profile](images/update%20institution%20profile.png)
 
-### 5. Create User
+**Delete Institution Profile:**
+```
+DELETE http://localhost:8080/api/institutions/{id}/profile
+```
+![Delete Institution Profile](images/delete%20institution%20profile.png)
+
+---
+
+#### User Operations
+
+**5. Create User**
 ```
 POST http://localhost:8080/api/users
 Body (JSON):
@@ -475,8 +600,37 @@ Body (JSON):
     "institution": {"id": 1}
 }
 ```
+![Create User](images/create%20user.png)
 
-### 6. Create Document
+**Get All Users:**
+```
+GET http://localhost:8080/api/users
+```
+![Get All Users](images/get%20all%20users.png)
+
+**Get User by ID:**
+```
+GET http://localhost:8080/api/users/{id}
+```
+![Get User by ID](images/get%20user%20by%20id.png)
+
+**Update User:**
+```
+PUT http://localhost:8080/api/users/{id}
+```
+![Update User](images/update%20user.png)
+
+**Delete User:**
+```
+DELETE http://localhost:8080/api/users/{id}
+```
+![Delete User](images/delete%20user.png)
+
+---
+
+#### Document Operations
+
+**6. Create Document**
 ```
 POST http://localhost:8080/api/documents
 Body (JSON):
@@ -487,36 +641,72 @@ Body (JSON):
     "institution": {"id": 1}
 }
 ```
+![Create Document](images/create%20document.png)
 
-### 7. Verify Document (Path Variable)
+**Get All Documents:**
+```
+GET http://localhost:8080/api/documents
+```
+![Get All Documents](images/get%20all%20documents.png)
+
+**Get Document by ID:**
+```
+GET http://localhost:8080/api/documents/{id}
+```
+![Get Document by ID](images/get%20document%20by%20id.png)
+
+**Get Documents Paginated:**
+```
+GET http://localhost:8080/api/documents/paginated?page=0&size=10
+```
+![Get Documents Paginated](images/get%20documents%20paginated.png)
+
+**Get Documents Sorted:**
+```
+GET http://localhost:8080/api/documents/sorted?sortBy=documentType
+```
+![Get Documents Sorted](images/get%20documents%20sorted.png)
+
+**Update Document:**
+```
+PUT http://localhost:8080/api/documents/{id}
+```
+![Update Document](images/update%20document.png)
+
+**Delete Document:**
+```
+DELETE http://localhost:8080/api/documents/{id}
+```
+![Delete Document](images/delete%20document.png)
+
+---
+
+### Document Verification
+
+**7. Verify Document (Path Variable)**
 ```
 GET http://localhost:8080/api/documents/verify/3C627BD5
 ```
+![Verify Document Path Variable](images/verify%20document%20path%20variable.png)
 
-### 8. Verify Document (Query Parameter)
+**8. Verify Document (Query Parameter)**
 ```
 GET http://localhost:8080/api/documents/verify?verification_code=3C627BD5
 ```
+![Verify Document Query Param](images/verify%20document%20query%20param.png)
 
-### 9. Get Users by Province Code
-```
-GET http://localhost:8080/api/users/province/code/WST
-```
+---
 
-### 10. Get Institutions by District
-```
-GET http://localhost:8080/api/institutions/location/district/Rubavu
-```
+### QR Code Verification
 
-### 11. Get Users with Pagination
-```
-GET http://localhost:8080/api/users/paginated?page=0&size=10
-```
+The system supports QR code generation for each document. Users can scan the QR code to verify document authenticity.
 
-### 12. Get Users with Sorting
-```
-GET http://localhost:8080/api/users/sorted?sortBy=email
-```
+**Successfully Scanned Document:**
+![Successfully Scanned Document](images/succesfully%20scanned%20document%20using%20QR%20code.png)
+
+**Fraud Detection:**
+When an invalid or tampered document is scanned, the system detects fraud:
+![Fraud Detected](images/fraud%20detected%20on%20web.png)
 
 ---
 
@@ -556,26 +746,80 @@ src/main/java/com/verifydocs/
 
 ## Key Features Implemented
 
-✅ 7 Entity tables with proper relationships  
-✅ Adjacency List pattern for location hierarchy  
-✅ Location saving functionality with validation  
-✅ Pagination using Pageable  
-✅ Sorting using Sort  
-✅ Many-to-Many relationship (User ↔ Document)  
-✅ One-to-Many relationships (Location → Location, Institution → User, Document → VerificationLog)  
-✅ One-to-One relationship (Institution ↔ InstitutionProfile)  
-✅ existBy() methods for existence checking  
-✅ Retrieve users/institutions by any location level with JPQL queries  
-✅ Document verification with SHA-256 hashing  
-✅ Global exception handling with custom error messages  
-✅ Profile create and update endpoints  
+### Core Features
+✅ **7 Entity tables** with proper relationships  
+✅ **Adjacency List pattern** for location hierarchy  
+✅ **Location saving functionality** with validation  
+✅ **Pagination** using Pageable interface  
+✅ **Sorting** using Sort class  
+✅ **Many-to-Many relationship** (User ↔ Document)  
+✅ **One-to-Many relationships** (Location → Location, Institution → User, Document → VerificationLog)  
+✅ **One-to-One relationship** (Institution ↔ InstitutionProfile)  
+✅ **existBy() methods** for existence checking  
+✅ **JPQL queries** to retrieve users/institutions by any location level  
+
+### Advanced Features
+✅ **Document verification** with SHA-256 hashing  
+✅ **QR Code generation** for each document  
+✅ **QR Code scanning** for verification  
+✅ **Fraud detection** system  
+✅ **Global exception handling** with custom error messages  
+✅ **Complete CRUD operations** for all entities  
+✅ **Profile management** (create, update, delete)  
+✅ **Hierarchical location queries** (Province → District → Sector → Cell → Village)
+
+### Security Features
+✅ **Unique verification codes** for each document  
+✅ **Cryptographic hashing** (SHA-256)  
+✅ **Verification logging** for audit trail  
+✅ **Data validation** at service layer  
+✅ **Referential integrity** with foreign keys
 
 ---
 
+## Technologies Used
 
+- **Backend Framework:** Spring Boot 3.x
+- **Database:** PostgreSQL 12+
+- **ORM:** Spring Data JPA / Hibernate
+- **Build Tool:** Maven 3.6+
+- **Java Version:** Java 17
+- **API Testing:** Postman
+- **QR Code Library:** ZXing (Zebra Crossing)
+- **Hashing Algorithm:** SHA-256
+
+---
+
+## Project Statistics
+
+- **Total Entities:** 7
+- **Total Relationships:** 7 (1 Many-to-Many, 4 One-to-Many, 1 One-to-One, 1 Self-Referencing)
+- **API Endpoints:** 40+
+- **CRUD Operations:** Complete for all entities
+- **Custom Queries:** 10+ JPQL queries
+- **Location Levels:** 5 (Province, District, Sector, Cell, Village)
+
+---
+
+## Conclusion
+
+VerifyDocs successfully implements a secure digital document verification system with comprehensive features including hierarchical location management, document verification with QR codes, fraud detection, and complete CRUD operations. The system follows best practices in software architecture, database design, and API development.
+
+---
 
 ## Author
-Pacifique Harerimana  
+
+**Pacifique Harerimana**  
 Student ID: 26937  
 AUCA - Web Technology and Internet Course  
-Midterm Project
+Midterm Project  
+
+---
+
+## License
+
+This project is developed for educational purposes as part of the Web Technology and Internet course at AUCA.
+
+---
+
+*Last Updated: 2024*
